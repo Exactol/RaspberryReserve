@@ -29,16 +29,15 @@ namespace RoomReservation
         {
             room = new Room(532, 25, "Marketing");
             room.reservations = new List<Reservation>();
-            room.reservations.Add(new Reservation(new DateTime(2017, 9, 10, 5, 52, 0), "Kieran Huang", 23));
-            room.reservations.Add(new Reservation(new DateTime(2017, 9, 10, 15, 32, 0), "Mokshat Sood", 23));
-            room.reservations.Add(new Reservation(new DateTime(2017, 9, 10, 8, 10, 0), "Amy Eng", 23));
+            room.reservations.Add(new Reservation(new DateTime(2017, 9, 10, 5, 52, 0), "Kieran Huang", 23, 15));
+            room.reservations.Add(new Reservation(new DateTime(2017, 9, 10, 15, 32, 0), "Mokshat Sood", 23, 30));
+            room.reservations.Add(new Reservation(new DateTime(2017, 9, 10, 8, 10, 0), "Amy Eng", 23, 50));
             room.reservations = room.reservations.OrderByDescending(x => x.Time.Hour).Reverse().ToList();
             InitializeComponent();
         }
 
         private void Loaded(object sender, RoutedEventArgs e)
         {
-
             RoomNumberBlock.Text += $"\n{room.RoomNumber}";
             if (!String.IsNullOrEmpty(room.RoomName))
                 RoomNumberBlock.Text += $"\n{room.RoomName}";
@@ -54,15 +53,6 @@ namespace RoomReservation
             
         }
 
-        //public SolidColorBrush GetSolidColorBrush(string hex)
-        //{
-        //    hex = hex.Replace("#", string.Empty);
-        //    byte r = (byte)(Convert.ToUInt32(hex.Substring(0, 2), 16));
-        //    byte g = (byte)(Convert.ToUInt32(hex.Substring(2, 2), 16));
-        //    byte b = (byte)(Convert.ToUInt32(hex.Substring(4, 2), 16));
-        //    SolidColorBrush myBrush = new SolidColorBrush(Color.FromArgb(255, r, g, b));
-        //    return myBrush;
-        //}
         private void ReserveClicked(object sender, RoutedEventArgs e)
         {
             ReservePopup.IsOpen = true;
@@ -70,12 +60,47 @@ namespace RoomReservation
 
         private void ExitClicked(object sender, RoutedEventArgs e)
         {
-            
+            ReserveText.Text="";
+            ReserveCalender.Date = DateTimeOffset.Now;
+            ReserveTime.Time = TimeSpan.Zero;
+            ReserveLength.Text = "";
+            ReservePopup.IsOpen = false;
         }
 
         private void RegisterClicked(object sender, RoutedEventArgs e)
         {
-            
+            if (string.IsNullOrEmpty(ReserveText.Text))
+                return;
+            if (!ReserveCalender.Date.HasValue)
+                return;
+            if (string.IsNullOrEmpty(ReserveLength.Text))
+                return;
+            ReservePopup.IsOpen = false;
+
+            DateTimeOffset calenderVal = ReserveCalender.Date.Value;
+
+            DateTime date = new DateTime(calenderVal.Year, calenderVal.Month, calenderVal.Day, ReserveTime.Time.Hours, ReserveTime.Time.Minutes, ReserveTime.Time.Seconds);
+
+            int roomNumber;
+            Int32.TryParse(room.RoomNumber, out roomNumber);
+            int reserveLength;
+            Int32.TryParse(ReserveLength.Text, out reserveLength);
+
+            room.reservations.Add(new Reservation(date, ReserveText.Text, roomNumber, reserveLength));
+            room.reservations = room.reservations.OrderByDescending(x => x.Time.Hour).Reverse().ToList();
+
+            InfoBox.Items.Clear();
+
+            ReserveText.Text = "";
+            ReserveCalender.Date = DateTimeOffset.Now;
+            ReserveTime.Time = TimeSpan.Zero;
+            ReserveLength.Text = "";
+            ReservePopup.IsOpen = false;
+
+            foreach (var roomReservation in room.reservations)
+            {
+                InfoBox.Items.Add(roomReservation);
+            }
         }
     }
 
@@ -107,14 +132,15 @@ namespace RoomReservation
         public string TimeFormatted { get; private set; }
         public string Name { get; private set; }
         public int RoomNumber { get; private set; }
+        public int Duration { get; private set; }
 
-        public Reservation(DateTime _time, string _name, int _roomNum)
+        public Reservation(DateTime _time, string _name, int _roomNum, int _duration)
         {
             Time = _time;
             Name = _name;
             RoomNumber = _roomNum;
-            TimeFormatted = string.Format("{0:HH:mm tt}", Time);
-
+            TimeFormatted = string.Format("{0:hh:mm tt}", Time);
+            Duration = _duration;
         }
     }
 }
