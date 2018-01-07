@@ -14,7 +14,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Grid Background="Tomato">
+        <Grid Background="#EE384B" x:Name="TitleBar">
             <TextBlock Padding="10,10,10,10" CharacterSpacing="100" FontSize="60" HorizontalAlignment="Center" VerticalAlignment="Center"><Bold>Reservations</Bold></TextBlock>
         </Grid>
 
